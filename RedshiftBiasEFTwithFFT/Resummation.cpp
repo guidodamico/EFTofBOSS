@@ -94,29 +94,29 @@ for (unsigned order = 0 ; order < 2 ; order++) {
 
 	// Output in files:
 	int pre = 12 ; // white spacing
+	
+	ostringstream filename ;
+	if (order == 0) filename << PathToFolder << "/PowerSpectraLinear.dat" ;
+	if (order == 1) filename << PathToFolder << "/PowerSpectra1loop.dat" ;
+
+	ofstream write (filename.str(), ios::out | ios::trunc) ;
+
+	if (order == 0) {
+		write << "#" << setw(pre-1) << "k" << setw(pre) << "1" << setw(pre) << "b1" << setw(pre) << "b1*b1" << endl ;
+	}
+
+	if (order == 1) { write << "#" << setw(pre-1) << "k" <<  setw(pre) << "1" << setw(pre) << "b1"  << setw(pre) << "b2"  << setw(pre) << "b3"  << setw(pre) << "b4"  << setw(pre) << "b1*b1"  << setw(pre) << "b1*b2"  << setw(pre) << "b1*b3"  << setw(pre) << "b1*b4"  << setw(pre) << "b2*b2"  << setw(pre) << "b2*b4"  << setw(pre) << "b4*b4" 
+		<< setw(pre) << "b1*b5"  << setw(pre) << "b1*b6"  << setw(pre) << "b1*b7"  << setw(pre) << "b5"  << setw(pre) << "b6"  << setw(pre) << "b7"  << endl ; //<< setw(pre) << "b8"  << setw(pre) << "b9"  << setw(pre) << "b10" << endl ; 
+	}
+
 	for (unsigned int i = 0 ; i < Nlout ; i++) {
-		
-		ostringstream filename ;
-		if (order == 0) filename << PathToFolder << "/PowerSpectraLinear_l" << 2*i << ".dat" ;
-    	if (order == 1) filename << PathToFolder << "/PowerSpectra1loop_l" << 2*i << ".dat" ;
-
-    	ofstream write (filename.str(), ios::out | ios::trunc) ;
-
-    	if (order == 0) {
-    		write << "#" << setw(pre-1) << "k" << setw(pre) << "1" << setw(pre) << "b1" << setw(pre) << "b1*b1" << endl ;
-    	}
-
-		if (order == 1) { write << "#" << setw(pre-1) << "k" <<  setw(pre) << "1" << setw(pre) << "b1"  << setw(pre) << "b2"  << setw(pre) << "b3"  << setw(pre) << "b4"  << setw(pre) << "b1*b1"  << setw(pre) << "b1*b2"  << setw(pre) << "b1*b3"  << setw(pre) << "b1*b4"  << setw(pre) << "b2*b2"  << setw(pre) << "b2*b4"  << setw(pre) << "b4*b4" 
-			<< setw(pre) << "b1*b5"  << setw(pre) << "b1*b6"  << setw(pre) << "b1*b7"  << setw(pre) << "b5"  << setw(pre) << "b6"  << setw(pre) << "b7"  << setw(pre) << "b8"  << setw(pre) << "b9"  << setw(pre) << "b10" << endl ; }
-
     	for (unsigned int m = 0 ; m < Nout ; m++) {
     		write << setw(pre) << kout[m] ;
     		for (unsigned int p = 0 ; p < Np ; p++) write << " " << setw(pre-1) << Pout[i][p][m]  ;
     		write << endl ;
     	}
-
-    	write.close() ;
 	}
+	write.close() ;
 }
 	gsl_integration_workspace_free (w) ;
 

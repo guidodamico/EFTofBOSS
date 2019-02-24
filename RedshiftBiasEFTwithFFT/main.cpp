@@ -1,13 +1,5 @@
-#include "RedshiftBiasEFT.h"
+#include "CBiRd.h"
 #include "ResumEFT.h"
-
-
-#include <ctime>
-#include <ratio>
-#include <chrono>
-
-using namespace std::chrono;
-
 
 int main(int argc, char *argv[]) {
 
@@ -17,17 +9,21 @@ int main(int argc, char *argv[]) {
 	}
 	
 	else {
-
 		// Default values
-		double nbar = 1./105. , km = 1. , knl = 1. ;
-		redshift z0 = 0.67 ;
+		double nbar = 1./105. , knl = 1., km = 1. ;
+		redshift z0 = 0.61 ;
 		ParametersCosmology cosmo ; for (unsigned int i = 0 ; i < Nc ; i++) cosmo[i] = Reference[i] ;
-		YesNo ImportM = 0, ExportM = 0, ComputePowerSpectrum = 1 ;
-		string PathToFolder = "./" ;
-		string PathToLinearPowerSpectrum ;
+		YesNo ComputePowerSpectrum = 1, ResumPowerSpectrum = 1, ComputeBispectrum = 1 ;
+		YesNo ExportM = 0, ImportM = 0 ;
+		string PathToOutput = "./", PathToLinearPowerSpectrum, PathToTriangles ;
+		double aperp = 1., apar = 1. ;
 
-		LoadConfigFile (argv[1], nbar, km, knl, z0, cosmo, PathToFolder, PathToLinearPowerSpectrum, ComputePowerSpectrum, ImportM, ExportM) ;
+		LoadConfigFile (argv[1], nbar, km, knl, z0, cosmo, 
+			PathToOutput, PathToLinearPowerSpectrum, 
+			ComputePowerSpectrum, ResumPowerSpectrum, ComputeBispectrum,
+			PathToTriangles, aperp, apar) ;
 
+		knl = km ;
 		///////////////////////////
 		//
 		///////////////////////////
@@ -35,39 +31,33 @@ int main(int argc, char *argv[]) {
 		ParamsP11 paramsP11 ;
 		LoadP11 (PathToLinearPowerSpectrum, cosmo, z0, paramsP11) ;
 
-		PowerSpectraNoResum Ps1Loop ;
-		PowerSpectraNoResum PsLinear ;
-
-		static StoreM TableM ;
-
-		steady_clock::time_point start = steady_clock::now();
-
-		if (ImportM == false) ResumM (PathToFolder, paramsP11, ExportM, &TableM) ;
-
-		steady_clock::time_point stop2 = steady_clock::now();
-		duration<double> runtime2 = duration_cast<duration<double>>(stop2-start);
-		cout << "Resummation matrices computed in " << runtime2.count() << " seconds." << endl ;
-
 		if (ComputePowerSpectrum == true) {
+
+			PowerSpectraNoResum Ps1Loop ;
+			PowerSpectraNoResum PsLinear ;
+
 			ComputePowerSpectraLinearNoResum  (paramsP11, &PsLinear) ;
 			ComputePowerSpectra1LoopNoResum (paramsP11, nbar, km, knl, &Ps1Loop) ;
 
-			ExportPowerSpectraNoResum (PathToFolder, 0, &PsLinear) ;
-			ExportPowerSpectraNoResum (PathToFolder, 1, &Ps1Loop) ;
+			if (ResumPowerSpectrum == true) {
 
-			ResumPowerSpectra (PathToFolder, paramsP11, &PsLinear, &Ps1Loop, ImportM, ExportM, &TableM) ;
+				static StoreM TableM ;
 
+				if (ImportM == false) ResumM (PathToOutput, paramsP11, ExportM, &TableM) ;
+
+				ResumPowerSpectra (PathToOutput, paramsP11, &PsLinear, &Ps1Loop, ImportM, ExportM, &TableM) ;
+			}
+
+			else {
+				ExportPowerSpectraNoResum (PathToOutput, 0, &PsLinear) ;
+				ExportPowerSpectraNoResum (PathToOutput, 1, &Ps1Loop) ;
+
+			}
 		}
 
-		
-		steady_clock::time_point stop = steady_clock::now();
-		duration<double> runtime = duration_cast<duration<double>>(stop-start);
-		cout << "RedshiftBiasEFTwithFFT ran in " << runtime.count() << " seconds." << endl ;
-		
-		
-		///////////////////////////
-		///
-		///////////////////////////
+		if (ComputeBispectrum == true) {
+			ComputeBispectrumMonopole (PathToOutput, PathToTriangles, paramsP11, nbar, aperp, apar) ;
+		}
 	}
 
 	return 0 ;
