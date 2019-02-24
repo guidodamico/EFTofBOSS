@@ -1,4 +1,2 @@
-input/GridsEFT
-input
-GridsEFT
-input/GridsEFT/.DS_Store
+*.DS_Store
+*.pyc
